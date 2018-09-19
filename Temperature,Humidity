@@ -1,0 +1,20 @@
+#include "DHT.h"
+#include <Adafruit_Sensor.h>
+
+DHT dht (2,DHT11);
+
+void setup() {
+Serial.begin(9600);
+}
+
+void loop() {
+int Temp = dht.readTemperature();
+int Humi = dht.readHumidity();
+
+Serial.print("Temperature: ");
+Serial.print(Temp);
+
+Serial.print(", Humidity: ");
+Serial.println(Humi);
+delay(1000);
+}
