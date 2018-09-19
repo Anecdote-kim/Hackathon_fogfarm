@@ -68,3 +68,45 @@ void loop()
     delay(10000);
  }
 }
+
+--------------------------------------------------------------------------------
+#include <Stepper.h>
+#define STEPSperRevolution 200 // The step cnt for 1 cycle
+#define RPM 120
+#define Baudrate 9600
+#define WATER 0 // The pin of the water_sensor
+#define ON 1
+#define OFF 0
+#define REF 300 // The reference value of the waterlevel
+#define STEPS 1024// The value of the step
+
+Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
+
+int val_water, flag = 0;
+
+void setup()
+{
+  myStepper.setSpeed(RPM); // The cycles per minute
+  Serial.begin(Baudrate);
+}
+
+void loop()
+{
+
+  val_water = analogRead(WATER); // The realtime-value of waterlevel
+  delay(1000);
+  Serial.println(val_water);
+
+  if(flag == OFF && val_water < REF) // Open the valve if the valve is closed and the water lever is lower than 300 now
+  {
+    Serial.println("clockwise");
+    myStepper.step(STEPS); // Revolve the motor clockwise for 1024 steps
+    flag = ON; // Change the state of valve
+  }
+  else if(flag == ON && val_water >= REF) // Close the valve if the valve is opened and the water lever is higher than 300 now
+  {
+    Serial.println("counter clockwise");
+    myStepper.step(-STEPS); // Revolve the motor counter clockwise for 1024 steps
+    flag = OFF; // Change the state of valve
+  }
+}
