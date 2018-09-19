@@ -1,0 +1,34 @@
+#include <Stepper.h>
+
+#define STEPS 200
+
+Stepper myStepper(STEPS, 8, 9, 10, 11);
+
+// the previous reading from the analog input
+int previous = 0;
+
+void setup()
+{
+// set the speed of the motor to 30 RPM
+myStepper.setSpeed(60);
+Serial.begin(9600);
+}
+
+void loop()
+{
+// get the sensor value
+
+int val = analogRead(0);
+//Serial.println(val);
+
+//if(val > 300)
+ //{
+ Serial.println("2");
+  myStepper.step(val - previous);
+  previous = val;
+ // delay(10000);
+//  Serial.println("1");
+// myStepper.step(100);
+//delay(10000);
+// }
+}
