@@ -18,3 +18,50 @@ Serial.print(", Humidity: ");
 Serial.println(Humi);
 delay(1000);
 }
+
+_______________________________________________________
+#include "DHT.h"
+#include <Adafruit_Sensor.h>
+
+DHT dht(2, DHT11);
+
+#define RELAY_ON 0
+#define RELAY_OFF 1
+#define Pin_Switch 13
+#define Relay_1 14
+#define REF_Temp 15 // 온도 환경값 15도(임의값)
+
+void setup() {
+  
+  Serial.begin(9600);
+  //digitalWrite(Relay_1, RELAY_OFF);
+  pinMode(Pin_Switch, INPUT);
+  pinMode(Relay_1, OUTPUT);
+  delay(5000);
+}
+
+void loop() {
+  
+  int Temp = dht.readTemperature();
+  int Humi = dht.readHumidity();
+  
+  // 온습도센서를 통해 온도 측정하고 switch에 값을 설정하기
+  if ( Temp > REF_TEMP)
+    digitalWrite(Pin_Switch, RELAY_ON)
+  else
+    digitalWrite(Pin_Switch, RELAY_OFF)
+
+  // switch 값에 따라 릴레이 모듈 on/off 결정  
+  if(digitalRead(Pin_Switch) == RELAY_ON) 
+  {
+    Serial.println("Relay On");
+    digitalWrite(Relay_1, RELAY_ON);
+    delay(5000);
+  }
+  else
+  {
+    Serial.println("Relay off");
+    digitalWrite(Relay_1, RELAY_OFF);
+    delay(5000);
+  }
+}
