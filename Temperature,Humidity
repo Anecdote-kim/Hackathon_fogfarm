@@ -65,3 +65,39 @@ void loop() {
     delay(5000);
   }
 }
+
+
+____________________________________________________________
+
+온도 측정값을 이용하여 팬 모터 회전(릴레이 모듈 x)
+
+#include <DHT.h>
+int pin = 2; // 연결한 아두이노 디지털 핀 번호
+int motorpin = 3; // 
+DHT dht11(pin);
+
+#define REF_Temp 15 // 온도 환경값 15도
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial.begin(9600);
+}
+
+void loop() {
+  
+  float temperature, humidity;
+
+  if ((dht11.read(temperature, humidity)) == 0)
+  {
+    Serial.print("Temperature: ");
+    Serial.print(temperature);
+    Serial.print(" Humidity: ");
+    Serial.print(humidity);
+    Serial.println();
+  
+    if (temperature > REF_Temp) 
+      analogWrite(motorPin, HIGH);
+    else 
+      analogWrite(motorPin, LOW);
+  }
+}
