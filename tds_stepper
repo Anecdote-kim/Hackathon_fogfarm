@@ -1,0 +1,51 @@
+#include <Stepper.h>
+#include <EEPROM.h>
+#include "GravityTDS.h"
+
+#define STEPSperRevolution 200 // The step cnt for 1 cycle
+#define RPM 120
+#define Baudrate 9600
+#define TDS 1 // The pin of the tds_sensor
+#define ON 1
+#define OFF 0
+#define REF 300 // The reference value of the waterlevel
+#define STEPS 1024// The value of the step
+#define TdsSensorPin A1
+GravityTDS gravityTds;
+
+ Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
+ int val_tds, flag = 0;
+ float temperature = 25, tdsValue = 0;
+ 
+ void setup()
+{
+  myStepper.setSpeed(RPM); // The cycles per minute
+  Serial.begin(Baudrate);
+  gravityTds.setPin(TdsSensorPin);
+  gravityTds.setAref(5.0);  //reference voltage on ADC, default 5.0V on Arduino UNO
+  gravityTds.setAdcRange(1024);  //1024 for 10bit ADC;4096 for 12bit ADC
+  gravityTds.begin();  //initialization
+}
+ void loop()
+{
+    //temperature = readTemperature();  //add your temperature sensor and read it
+    gravityTds.setTemperature(temperature);  // set the temperature and execute temperature compensation
+    gravityTds.update();  //sample and calculate 
+    tdsValue = gravityTds.getTdsValue();  // then get the value
+    Serial.print(tdsValue,0);
+    Serial.println("ppm");
+    delay(1000);
+    Serial.println(tdsValue);
+    if(flag == OFF && tdsValue < REF) // Open the valve if the valve is closed and the tds lever is lower than 300 now
+   {
+    Serial.println("clockwise");
+    myStepper.step(STEPS); // Revolve the motor clockwise for 1024 steps
+    flag = ON; // Change the state of valve
+  }
+  else if(flag == ON && tdsValue >= REF) // Close the valve if the valve is opened and the tds lever is higher than 300 now
+  {
+    Serial.println("counter clockwise");
+    myStepper.step(-STEPS); // Revolve the motor counter clockwise for 1024 steps
+    flag = OFF; // Change the state of valve
+  }
+}
