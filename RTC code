@@ -1,0 +1,66 @@
+#include <DS1302RTC.h>
+#include <Time.h>
+#define ledPin 8
+#define RTCpin 10
+#int hour
+#int minute
+#int second
+
+DS1302RTC start_rtc(2,3,4);
+
+void setup() {
+  pinMode(RTCpin, INPUT);
+  pinMode(ledPin, OUTPUT);
+  start_rtc.halt(false);
+  start_rtc.writeProtect(false);
+  
+  Serial.print("Initial Time: ");
+  Serial.print(start_rtc.getDOWStr()); //요일
+  Serial.print(" ");
+  Serial.print(start_rtc.getDateStr()); //날짜
+  Serial.print(" -- ");
+  Serial.print(start_rtc.getTimeStr()); //시간 
+  
+  hour = start_rtc.getHours;
+  minute = start_rtc.getMinutes;
+  second = start_rtc.getSeconds;
+  
+  digitalWrite(ledpin, HIGH);
+}
+
+void loop()
+{
+  digitalClockDisplay();
+  delay(1000);
+}
+
+void digitalClockDisplay()
+{
+  
+  Serial.print(hour());
+  printDigits(minute());
+  printDigits(second());
+  Serial.print(" ");
+  Serial.print(day());
+  Serial.print(" ");
+  Serial.print(month());
+  Serial.print(" ");
+  Serial.print(year());
+  Serial.println(); 
+
+  if(hour == hour() && minute == minute() && second == second())
+    digitalWrite(ledpin, HIGH);
+  else if(hour == hour()+12 && minute == minute() && second == second())
+    digitalWrite(ledpin, LOW);
+}
+
+void printDigits(int digits) {
+  Serial.print(":");
+  if(digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
+}
+
+// RTC 모듈 배송되면 회로 연결하면서 제대로 실행되는지 확인해봐야 할 것 같습니다.
+// 대략적인 code 구현만 한 상태임으로 compile 오류 발생할 수 도 있습니다.
+// 발생하는 오류는 이후에 수정하도록 하겠습니다. 
