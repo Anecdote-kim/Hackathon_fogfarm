@@ -49,3 +49,90 @@
   else if(flag == ON)
     myStepper.step(-STEPS);
 }
+
+// 온습도 센서와 통합해서 쓴 코드
+
+#include "DHT.h"
+#include <Stepper.h>
+#define STEPSperRevolution 200 // The step cnt for 1 cycle
+#define RPM 120
+#define Baudrate 9600
+#define WATER 0 // The pin of the water_sensor
+#define ON 1
+#define OFF 0
+#define REF_Water 300 // The reference value of the waterlevel
+#define REF_Temp 20 // The reference value of the temperature
+#define STEPS 1024// The value of the step
+ DHT dht (5,DHT11);
+ Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
+ int val_water, flag = 0, flag2 = 0, state, state2 = HIGH;
+ int pin = 4, motorpin = 6;
+  
+ void setup()
+{
+  myStepper.setSpeed(RPM); // The cycles per minute
+  attachInterrupt(0,stepp,CHANGE);
+  attachInterrupt(1,motorr,CHANGE);
+  pinMode(0,OUTPUT);
+  pinMode(1,OUTPUT);
+  Serial.begin(Baudrate);
+}
+
+ void check_waterlevel()
+{
+  val_water = analogRead(WATER);
+  delay(1000);
+
+  if(flag == OFF && val_water < REF_Water)
+  {
+  state = !state;
+  digitalWrite(0, state);
+  flag = ON;
+  }
+  else if(flag == ON && val_water > REF_Water)
+  {
+  state = !state;
+  digitalWrite(0, state);
+  flag = OFF;
+  }
+}
+
+ void check_TempHumi()
+{ 
+  int temperature = dht.readTemperature();
+  
+  if (temperature > REF_Temp)
+  {
+    state2 = !state2;
+    digitalWrite(1,state2);
+    flag2 = ON;
+  }
+  else
+  {
+    state2 = !state2;
+    digitalWrite(1,state2);
+    flag2 = OFF;
+  } 
+}
+ 
+ void loop()
+{
+   check_waterlevel();
+   check_TempHumi();
+}
+
+ void stepp()
+{
+  if(flag == OFF)
+    myStepper.step(STEPS);
+  else if(flag == ON)
+    myStepper.step(-STEPS);
+}
+
+ void motorr()
+{
+ if (flag2 == OFF)
+    digitalWrite(motorpin, HIGH);
+  else if (flag2 == ON)
+    digitalWrite(motorpin, LOW);
+}
