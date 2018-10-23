@@ -1,0 +1,77 @@
+#include <Stepper.h>
+ #define STEPSperRevolution 200 // The step cnt for 1 cycle
+ #define RPM 120
+ #define Baudrate 9600
+ #define WATER 0 // The pin of the water_sensor
+ #define ON 1
+ #define OFF 0
+ #define REF_Water 300 // The reference value of the waterlevel
+ #define STEPS 1024// The value of the step
+  Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
+  int val_water, state=HIGH;
+  volatile int flag=OFF;
+  void setup()
+ {
+   myStepper.setSpeed(RPM); // The cycles per minute
+   attachInterrupt(0,stepp,CHANGE);
+   pinMode(0,OUTPUT);
+   Serial.begin(Baudrate);
+ }
+ 
+  void check_waterlevel()
+ {
+   // val_water = analogRead(WATER);
+   //delay(1000);
+ 
+   if(flag == OFF && val_water < REF_Water)
+   {
+   state = !state;
+   digitalWrite(0, state); // 0번 핀의 state가 바뀌면서 interrupt 발생 -> stepp함수로 이동
+   flag = ON;
+   }
+   else if(flag == ON && val_water >= REF_Water)
+   {
+   state = !state;
+   digitalWrite(0, state); // 0번 핀의 state가 바뀌면서 interrupt 발생 -> stepp함수로 이동
+   flag = OFF;
+   }
+ }
+  
+  void loop()
+ {
+    val_water = 0;
+    check_waterlevel();
+    Serial.print(val_water);
+    delay(1000);
+    val_water = 50;
+    check_waterlevel();
+    Serial.print(val_water);
+    delay(1000);
+    val_water = 100;
+    check_waterlevel();
+    Serial.print(val_water);
+    delay(1000);
+    val_water = 200;
+    check_waterlevel();
+    Serial.print(val_water);
+    delay(1000);
+    val_water = 400;
+    check_waterlevel();
+    Serial.print(val_water);
+    delay(1000);
+    // check_waterlevel(); // 메인루프함수에서는 간단하게 이 함수만 참조.
+ }
+ 
+  void stepp()
+ {
+   if(flag == OFF)
+     {
+        myStepper.step(STEPS);
+        Serial.print("밸브 염");
+     }
+   else if(flag == ON)
+     {
+        myStepper.step(-STEPS);
+        Serial.print("밸브 잠금");
+     }
+}
