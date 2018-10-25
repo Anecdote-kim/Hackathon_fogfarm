@@ -65,7 +65,7 @@ void printDigits(int digits) {
 // 대략적인 code 구현만 한 상태임으로 compile 오류 발생할 수 도 있습니다.
 // 발생하는 오류는 이후에 수정하도록 하겠습니다. 
 
-//수정, RTC 시간에 따라 LED 제어 가능하도록 수정 하였습니다. 
+//수정, RTC 시간에 따라(12시간마다 on/off) LED 제어 가능하도록 수정 하였습니다. 
 #include <DS1302RTC.h>
 #include <Time.h>
 #include <TimeLib.h>
@@ -107,8 +107,8 @@ void setup() {
   tm.Day = 21;
   tm.Wday = 3;
   tm.Hour = 00;
-  tm.Minute = 59;
-  tm.Second = 50;
+  tm.Minute = 00;
+  tm.Second = 00;
 if (start_rtc.write(tm) == 0) {
   time_t t = makeTime(tm);
   setTime(t);
@@ -153,10 +153,11 @@ void printDigits(int digits) {
 }
 
 void LED_contol(){
-  if(minute()==0)
+  if(hour()<12)
   digitalWrite(ledPin,HIGH);
   else
   digitalWrite(ledPin,LOW);
 }
+
 
 
