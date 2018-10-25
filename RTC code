@@ -64,3 +64,99 @@ void printDigits(int digits) {
 // RTC 모듈 배송되면 회로 연결하면서 제대로 실행되는지 확인해봐야 할 것 같습니다.
 // 대략적인 code 구현만 한 상태임으로 compile 오류 발생할 수 도 있습니다.
 // 발생하는 오류는 이후에 수정하도록 하겠습니다. 
+
+//수정, RTC 시간에 따라 LED 제어 가능하도록 수정 하였습니다. 
+#include <DS1302RTC.h>
+#include <Time.h>
+#include <TimeLib.h>
+#define ledPin 8
+//#int hour
+//#int minute
+//#int second
+
+DS1302RTC start_rtc(2,3,4);
+
+void setup() {
+
+  //digitalWrite(//DS1302_GND_PIN// , LOW);
+  //pinMode(//DS1302_GND_PIN//, OUTPUT);
+
+  //digitalWrite(//DS1302_VCC_PIN//, HIGH);
+  //pinMode(//DS1302_VCC_PIN//, OUTPUT);
+  pinMode(ledPin,OUTPUT);
+  Serial.begin(9600);
+  Serial.println("RTC module acitvated");
+  Serial.println();
+  delay(500);
+
+   if (start_rtc.haltRTC()) {
+    Serial.println("The DS1302 is stopped.  Please run the SetTime");
+    Serial.println("example to initialize the time and begin running.");
+    Serial.println();
+  }
+
+  if (!start_rtc.writeEN()) {
+    Serial.println("The DS1302 is write protected. This normal.");
+    Serial.println();
+  }
+
+  delay(5000);
+  tmElements_t tm;
+  tm.Year = CalendarYrToTm(2018);
+  tm.Month = 11;
+  tm.Day = 21;
+  tm.Wday = 3;
+  tm.Hour = 00;
+  tm.Minute = 59;
+  tm.Second = 50;
+if (start_rtc.write(tm) == 0) {
+  time_t t = makeTime(tm);
+  setTime(t);
+}
+}
+
+void loop()
+{
+  tmElements_t tm;
+
+  Serial.print("UNIX TIME: ");
+  Serial.println(start_rtc.get());
+  
+  if (!start_rtc.read(tm)) {
+    Serial.print(year());
+    Serial.print("-");
+    Serial.print(month());
+    Serial.print("-");
+    Serial.print(day());
+    Serial.print("/");
+    Serial.print(hour());
+    Serial.print(":");
+    Serial.print(minute());
+    Serial.print(":");
+    Serial.println(second());
+  } 
+  else {
+    Serial.print("DS1302 read error! Please check the circuitry.");
+    Serial.println();
+    delay(9000);
+  }
+  delay(1000);
+  LED_contol();
+  
+}
+
+void printDigits(int digits) {
+  Serial.print(":");
+  if(digits < 10)
+    Serial.print('0');
+  Serial.print(digits);
+}
+
+void LED_contol(){
+  if(minute()==0)
+  digitalWrite(ledPin,HIGH);
+  else
+  digitalWrite(ledPin,LOW);
+}
+
+
