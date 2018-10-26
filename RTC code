@@ -158,6 +158,59 @@ void LED_contol(){
   else
   digitalWrite(ledPin,LOW);
 }
+///////////////////////////////////////////////////////////////
+#include <DS1302.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#define ledPin 8
 
+DS1302 rtc(2,3,4);
+//LiquidCrystal_I2C lcd(0x3F,2,1,0,4,5,6,7,3,POSITIVE);
 
+void setup(){
+  
+  pinMode(ledPin,OUTPUT);
+  Serial.begin(9600);
+  //lcd.begin(16,2);
+  //lcd.backlight();
 
+ // rtc.halt(false);
+ // rtc.writeProtect(false);
+  
+
+  //rtc.setDOW(SUNDAY);
+  //rtc.setTime(10,8,0);
+ // rtc.setDate(12,11,2018);
+}
+void loop(){
+  Serial.print(rtc.getDOWStr());
+  Serial.print(rtc.getDateStr());
+  Serial.print("--");
+  Serial.println(rtc.getTimeStr());
+
+  //lcd.clear();
+  data();
+  printTime();
+  delay(1000);
+  LED_contol();
+}
+
+void data(){
+  //lcd.setCursor(0,0);
+  //lcd.print(rtc,getDOWStr());
+  //lcd.setCursor(3,1);
+  //lcd.print(rtc.getDateStr());
+  
+}
+
+void printTime(){
+  //lcd.setCursor(8,0);
+  //lcd.print(rtc.getTimeStr());
+  
+}
+
+void LED_contol(){
+  if(hour()<12)
+  digitalWrite(ledPin,HIGH);
+  else
+  digitalWrite(ledPin,LOW);
