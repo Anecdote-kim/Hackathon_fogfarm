@@ -214,3 +214,54 @@ void LED_contol(){
   digitalWrite(ledPin,HIGH);
   else
   digitalWrite(ledPin,LOW);
+
+############################################################################################
+// rtc의 시간 값에서 시간만 따로 받아오는 함수 구현
+
+#include <DS1302.h>
+#include <Wire.h>
+//#include <LiquidCrystal_I2C.h>
+#define ledPin 8
+ DS1302 rtc(2,3,4);
+ int changedtime;
+//LiquidCrystal_I2C lcd(0x3F,2,1,0,4,5,6,7,3,POSITIVE);
+ void setup(){
+  
+  pinMode(ledPin,OUTPUT);
+  Serial.begin(9600);
+  //lcd.begin(16,2);
+  //lcd.backlight();
+}
+void loop(){
+  changedtime=atoi(rtc.getTimeStr());
+  Serial.println(changedtime);
+   //lcd.clear();
+  //data();
+  //printTime();
+  delay(1000);
+  LED_contol();
+}
+/*
+ void data(){
+  //lcd.setCursor(0,0);
+  //lcd.print(rtc,getDOWStr());
+  //lcd.setCursor(3,1);
+  //lcd.print(rtc.getDateStr());
+  
+}
+*/
+/*
+ void printTime(){
+  lcd.setCursor(8,0);
+  lcd.print(rtc.getTimeStr());
+  
+}
+*/
+
+ void LED_contol(){
+  if(changedtime<12)
+  digitalWrite(ledPin,HIGH);
+  else
+  digitalWrite(ledPin,LOW);
+ }
+
