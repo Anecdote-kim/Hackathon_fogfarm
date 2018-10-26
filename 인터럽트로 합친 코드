@@ -1,38 +1,49 @@
  #include <Stepper.h>
+ #include "DHT.h"
+ #include <Adafruit_Sensor.h>
  #define STEPSperRevolution 200 // The step cnt for 1 cycle
  #define RPM 120
  #define Baudrate 9600
  #define WATER 0 // The pin of the water_sensor
  #define ON 1
  #define OFF 0
- #define REF_Water 300 // The reference value of the waterlevel
- #define STEPS 1024// The value of the step
- Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
-  
+ #define REF_Water 70 // The reference value of the waterlevel
+ #define STEPS 1024 //스텝 값
+ #define REF_Temp 15 // 온도 환경값 15도
+
 byte val_water;
-const byte ledPin = 3;
+//const byte ledPin = 3;
+const int tempPin = 4;
 const byte interruptPin1 = 2; //interruptpin 디지털2번 설정
+const byte interruptPin2 = 3;
 byte flag = OFF; // 모터 반복 수행 제어하기 위한 flag 변수
-byte state = LOW; // 인터럽트 수행위한 state 변수
+byte water_state = LOW; // water 인터럽트 수행위한 state 변수
+byte temp_state = LOW; // temp 인터럽트 수행위한 state 변수
+float temperature, humidity;
+int err;
+
+Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
+DHT dht(tempPin, DHT11);
+
 
 void setup() {
   myStepper.setSpeed(RPM); // 모터 설정
-  pinMode(ledPin, OUTPUT); // 인터럽트 발생시 led 점등위한 led 핀 out설정
-  pinMode(interruptPin1, INPUT_PULLUP);
-  digitalWrite(interruptPin1, LOW);
-  attachInterrupt(digitalPinToInterrupt(interruptPin1), step, CHANGE);
+ // pinMode(ledPin, OUTPUT); // 인터럽트 발생시 led 점등위한 led 핀 out설정
+  pinMode(interruptPin1, INPUT); // water interruptPin
+  pinMode(interruptPin2, INPUT); // temp interruptPin
+  pinMode(5, OUTPUT); // water interrupt switch
+  pinMode(7, OUTPUT); // temp interrupt switch
+  digitalWrite(5, LOW);
+  digitalWrite(7, LOW);
+  attachInterrupt(digitalPinToInterrupt(interruptPin1), stepp, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(interruptPin2), temp, CHANGE);
   Serial.begin(Baudrate);
-  Serial.println("set up");
-  Serial.println("state value of set up");
-  Serial.println(state);
 }
 
 void loop() {
-  Serial.println("loop");
-  digitalWrite(ledPin, LOW);
-  Serial.print("state :");
-  Serial.println(state);
+  //digitalWrite(ledPin, LOW);
   check_waterlevel();
+  check_temperature();
 }
 
 
@@ -44,21 +55,50 @@ void check_waterlevel()
   if(flag == OFF && val_water < REF_Water)
   {
     Serial.println("clockwise revolve");
-    state = !state;
-    digitalWrite(2, HIGH);
-    Serial.println("changed state");
-    Serial.println(state);
+    water_state = !water_state;
+    digitalWrite(5, water_state);
+    Serial.println("changed water_state");
     flag = ON;
+    //delay(10000);
   }
   else if(flag == ON && val_water >= REF_Water)
   {
-    state = !state;
-    //digitalWrite(2, state);
+    Serial.println("counter_clockwise revolve");
+    water_state = !water_state;
+    digitalWrite(5, water_state);
+    Serial.println("changed water_state");
     flag = OFF;
+    //delay(10000);
   }
 }
 
+void check_temperature()
+{
+    temperature = dht.readTemperature();
+    humidity = dht.readHumidity();
+    Serial.print("Temperature: ");
+    Serial.print(temperature);
+    Serial.print(" Humidity: ");
+    Serial.print(humidity);
+    Serial.println();
+    delay(1000);
+    
+    if (temperature > REF_Temp) 
+    {
+      temp_state = !temp_state;
+      digitalWrite(7, temp_state);
+      Serial.println("changed temp_state");
+    }
+}
 
-void step() {
-  Serial.println("step");
+
+void stepp() {
+  Serial.println("step interrupt on");
+  //myStepper.step(STEPS); 
+  delay(10000);
+}
+
+void temp(){
+  Serial.println("temp interrupt on");
+  delay(1000);
 }
