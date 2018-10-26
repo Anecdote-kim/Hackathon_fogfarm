@@ -56,7 +56,6 @@ void loop() {
     Serial.println("act motor");
   }
 
-  temperature = 46;
   check_temperature();
   if(flag_fan == ON)
   {
@@ -96,7 +95,7 @@ void check_waterlevel()
 
 void check_temperature()
 {
-    temperature = 46; //dht.readTemperature();
+    temperature = dht.readTemperature();
     humidity = dht.readHumidity();
     Serial.print("Temperature: ");
     Serial.print(temperature);
