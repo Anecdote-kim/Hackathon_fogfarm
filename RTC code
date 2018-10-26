@@ -264,4 +264,61 @@ void loop(){
   else
   digitalWrite(ledPin,LOW);
  }
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+LCD_I2C 코드는 짜놨는데 확인을 못했습니다.
 
+#include <Wire.h>
+#include <DS1302.h>
+#include <LiquidCrystal_I2C.h>
+#define ledPin 8
+
+DS1302 rtc(2,3,4);
+LiquidCrystal_I2C lcd(0x27,16,2);
+
+void setup(){
+  
+  pinMode(ledPin,OUTPUT);
+  Serial.begin(9600);
+  lcd.init();
+  lcd.backlight();
+
+ // rtc.halt(false);
+ // rtc.writeProtect(false);
+  
+
+  //rtc.setDOW(SUNDAY);
+  //rtc.setTime(10,8,0);
+ //rtc.setDate(12,11,2018);
+}
+void loop(){
+  lcd.setCursor(0,0);
+  lcd.clear();
+  data();
+  printTime();
+  delay(1000);
+  LED_contol();
+}
+
+void data(){
+  lcd.setCursor(0,0);
+  lcd.print(rtc.getDOWStr());
+  lcd.setCursor(3,1);
+  lcd.print(rtc.getDateStr());
+  
+}
+
+void printTime(){
+  lcd.setCursor(8,0);
+  lcd.print(rtc.getTimeStr());
+  
+}
+
+
+ void LED_contol(){
+  int changedtime;
+  changedtime=atoi(rtc.getTimeStr());
+  if(changedtime<12)
+  digitalWrite(ledPin,HIGH);
+  else
+  digitalWrite(ledPin,LOW);
+ }
