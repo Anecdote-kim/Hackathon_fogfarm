@@ -102,3 +102,207 @@ void temp(){
   Serial.println("temp interrupt on");
   delay(1000);
 }
+
+
+######################################################################################################################3
+ #include <EEPROM.h>
+ #include <Stepper.h> // stepper motor
+ #include <DS1302.h> // rtc
+ #include <Wire.h>
+ #include "DHT.h" // 온습도 센서
+ #include <Adafruit_Sensor.h>
+ #define STEPSperRevolution 200 // The step cnt for 1 cycle
+// #define RPM 120
+ #define Baudrate 9600 // 통신속도
+ #define WATER 0 // The pin of the water_sensor
+ #define ON 1
+ #define OFF 0
+// #define REF_Water 70 // The reference value of the waterlevel
+ #define STEPS 1024 //스텝 값
+// #define REF_Temp 25 // 온도 환경값 25도
+// #define REF_Time 13 // 시간 환경값 13pm
+ #define temp_err 45 // 온도 한계치 45도
+ #define water_err 400 // 수위 한계치 400
+ #define sunlight 25 // 식물 led 핀 25
+
+
+int RPM, REF_Water, REF_Temp, REF_Time; // 환경 설정 값
+int val_water, changedtime; // 수위 센서 값, rtc 시간 측정 값 저장 변수
+int int_ledPin1 =12; // error interrupt 위한 led pin
+int int_ledPin2 =13; // actuator interrupt 위한 led pin
+float temperature, humidity; // 온습도 센서 값 저장 변수
+const int tempPin = 4;
+const byte interruptPin1 = 2; //interruptpin1 디지털 2번 설정
+const byte interruptPin2 = 3; //interruptpin2 디지털 3번 설정
+byte flag = OFF; // 모터 반복 수행 제어하기 위한 flag 변수
+byte flag2 = OFF; // 팬 반복 수행 제어하기 위한 flag 변수
+byte water_state = LOW; // water 인터럽트 수행위한 state 변수
+byte temp_state = LOW; // temp 인터럽트 수행위한 state 변수
+volatile int flag_motor = OFF; // stepper motor 인터럽트 flag 변수
+volatile int flag_fan = 0; // fan motor 인터럽트 flag 변수
+
+Stepper myStepper(STEPSperRevolution,11, 9, 10, 8);
+DHT dht(tempPin, DHT11);
+DS1302 rtc(22,23,24);
+
+void setup()
+{
+    save_setting();
+    open_setting(); // setting값 불러오기
+    myStepper.setSpeed(RPM); // 모터 설정
+    pinMode(int_ledPin1, OUTPUT); // actuator 인터럽트 발생시 led 점등위한 led 핀 out 설정
+    pinMode(int_ledPin2, OUTPUT); // error 인터럽트 발생시 led 점등위한 led 핀 out 설정
+    pinMode(sunlight, OUTPUT); // 식물 led 핀
+    pinMode(interruptPin1, INPUT); // water interruptPin
+    pinMode(interruptPin2, INPUT); // temp interruptPin
+    pinMode(5, OUTPUT); // water interrupt switch
+    pinMode(6, OUTPUT); // 쿨링 팬 핀(나중에 더 작성)
+    pinMode(7, OUTPUT); // temp interrupt switch
+    digitalWrite(5, LOW);
+    digitalWrite(7, LOW);
+    digitalWrite(int_ledPin1, LOW);
+    digitalWrite(int_ledPin2, LOW);
+    attachInterrupt(digitalPinToInterrupt(interruptPin1), stepp, CHANGE); // stepp 인터럽트 on
+    attachInterrupt(digitalPinToInterrupt(interruptPin2), temp, CHANGE); // temp 인터럽트 on
+    Serial.begin(Baudrate);
+    Serial.println(RPM);
+    Serial.println(REF_Water);
+    Serial.println(REF_Temp);
+    Serial.println(REF_Time);
+}
+
+void loop()
+{
+    digitalWrite(int_ledPin1, LOW);
+    check_time();
+    check_waterlevel();
+    digitalWrite(int_ledPin2, LOW);
+    check_temperature();
+    digitalWrite(int_ledPin2, LOW);
+}
+
+
+void check_waterlevel()
+{
+    val_water = analogRead(WATER);
+   // Serial.println(val_water);
+    delay(1000);
+    if(flag == OFF && val_water < REF_Water)
+       {
+          digitalWrite(int_ledPin2, HIGH);
+          water_state = !water_state;
+          digitalWrite(5, water_state);
+          flag = ON;
+      }
+    else if (flag == ON && val_water >= REF_Water && val_water < water_err)
+      {
+          digitalWrite(int_ledPin2, HIGH);
+          water_state = !water_state;
+          digitalWrite(5, water_state);
+          flag = OFF;
+      }
+    else if (val_water > water_err)
+          error();
+  
+      if(flag_motor == ON)
+        {
+          act_motor();
+        }
+}
+
+void check_temperature()
+{
+    temperature = dht.readTemperature();
+    humidity = dht.readHumidity();
+    delay(1000);
+
+    if(temperature > temp_err)
+      error();
+    else if(flag2 == OFF && temperature > REF_Temp) 
+    {
+      digitalWrite(int_ledPin2, HIGH);
+      temp_state = !temp_state;
+      digitalWrite(7, temp_state);
+      flag2 = ON;
+    }
+    else if (flag2 == ON && temperature < REF_Temp)
+    {
+      digitalWrite(int_ledPin2, HIGH);
+      temp_state = !temp_state;
+      digitalWrite(7, temp_state);
+      flag2 = OFF;
+    }
+
+      if(flag_fan == ON)
+  {
+    act_fan();
+  }
+  
+}
+
+void act_motor(){
+  if(val_water < REF_Water)
+    {
+      myStepper.step(STEPS);
+    }
+  else
+    {
+      myStepper.step(-STEPS);
+    }
+   flag_motor = OFF;
+}
+
+void act_fan(){
+  if(temperature < REF_Temp)
+    digitalWrite(6, HIGH); // 팬 작동하도록 코드 짜야함.
+  else
+    digitalWrite(6, LOW);
+  flag_fan = OFF;
+}
+
+void check_time(){
+  //Serial.println(rtc.getTimeStr());
+  if(atoi(rtc.getTimeStr())<REF_Time)
+  digitalWrite(sunlight, HIGH);
+  else
+  digitalWrite(sunlight, LOW);
+}
+
+void open_setting()
+{
+    RPM = EEPROM.read(0);
+    REF_Water = EEPROM.read(1);
+    REF_Temp = EEPROM.read(2);
+    REF_Time = EEPROM.read(3);
+}
+
+
+void save_setting()
+{
+  int a[4] = {120, 70, 35, 13};
+  for(int i =0; i<4; i++)
+  {
+    EEPROM.write(i,a[i]);
+  }
+}
+
+
+//interrupt 함수
+
+void error(){
+  Serial.println("error");
+  digitalWrite(int_ledPin1, HIGH);
+  EIFR |=(1<<INTF0);
+  EIFR |=(1<<INTF1);
+  while(1);
+}
+
+void stepp(){
+  Serial.println("step interrupt on");
+  flag_motor = ON;
+}
+
+void temp(){
+  Serial.println("temp interrupt on");
+  flag_fan = ON;
+}
