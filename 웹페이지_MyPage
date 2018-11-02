@@ -1,0 +1,35 @@
+1.웹 페이지 "my page"에서 환경타입을 설정하는 체크박스 생성하기
+2. 텍스트 필드에서 환경 값을 입력받기 // 입력타입을 "number"로 수정하였음.
+
+<label for="Env.Value_TYPE1">환경값 타입1</label> // 페이지에서 보여지는 label의 이름설정
+<select id="Env.Value_TYPE1" name="kboard_option_Env.Value_TYPE1"> // label 설정 
+<option value="온도">temperature</option> // 체크박스 선택항목 3가지
+<option value="습도">humidity</option>
+<option value="RPM">RPM</option>
+</select>
+<label for="website">환경값 입력1</label>
+<input id="website" name="value1" type="number" value="Input Data" /> // 텍스트필드에 입력받는 타입 설정 => 'type="number"' 숫자형 입력
+
+<label for="Env.Value_TYPE2">환경값 타입2</label>
+<select id="Env.Value_TYPE2" name="kboard_option_Env.Value_TYPE2">
+<option value="온도">temperature</option>
+<option value="습도">humidity</option>
+<option value="RPM">RPM</option>
+</select>
+<label for="website">환경값 입력2</label>
+<input id="website" name="value2" type="number" value="Input Data" />
+
+<label for="Env.Value_TYPE3">환경값 타입3</label>
+<select id="Env.Value_TYPE3" name="kboard_option_Env.Value_TYPE3">
+<option value="온도">temperature</option>
+<option value="습도">humidity</option>
+<option value="RPM">RPM</option>
+</select>
+<label for="website">환경값 입력3</label>
+<input id="website" name="value3" type="number" value="Input Data" />
+
+
+앞으로 구현할 내용
+1. 'set' 버튼을 생성하여 체크박스에서 선택한 환경타입과 필드에 입력받은 데이터 출력하기 (행동유도버튼을 생성?)
+2. 입력받은 값들을 저장할 변수 생성 및 설정// (사용자 정의 필드? 사용)
+3. 통신가능하도록 구현 //
