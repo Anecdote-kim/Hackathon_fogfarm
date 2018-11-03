@@ -1,0 +1,38 @@
+ubuntu terminal에서 database 구축하기
+
+// 웹서버 연동시키기
+sudo apt-get install apache2 -y
+cd /var/www/html
+ls
+/var/www/html $ sudo apt-get install php5 libapache2-mod-php5 -y
+sudo apt-get install mysql-server php5-mysql -y
+sudo service apache2 restart
+sudo rm *
+sudo wget http://wordpress.org/latest.tar.gz
+sudo tar xzf latest.tar.gz
+sudo mv wordpress/ * .
+sudo rm - rf wordpress latest.tar.gz
+sudo chown -R www-data:
+
+// mysql 관리자 모드 실행
+mysql -u root -p;
+// DB 구축하기
+create database wordpress;
+// 구축한 데이터베이스 사용하기
+use wordpress;
+// 테이블 생성하기
+CREATE TABLE ENVIRO_V(
+    ID INT NOT NULL,
+    NAME VARCHAR(30) NOT NULL,
+    TEMP INT NOT NULL DEFAULT 0,
+    HUMID INT NOT NULL DEFAULT 0,
+    RPM INT NOT NULL DEFAULT 0
+);
+
+//TEST - 임의의 데이터 record 추가하기
+INSERT INTO ENVIRO_V(ID, NAME, TEMP, HUMID, RPM) VALUES (1, 'A', 30, 50, 100);
+//테스트 값 삭제하기
+DELETE FROM ENVIRO_V WHERE ID = 1;
+
+
+iconfig->inet addr 확인하기
